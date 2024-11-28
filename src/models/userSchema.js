@@ -47,8 +47,38 @@ const productSchema = new mongoose.Schema(
       category: {
         type: String,
       },
+      people: {
+        type: Number,
+      },
+      date: {
+        type: String,
+      },
     }
   );
-  const Products = mongoose.model('Product', productSchema);
   
-  module.exports = Products;
+const testimonialSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    location: {
+      type: String,
+    },
+    heading: {
+      type: String,
+      required: true,
+    },
+    shortDescription: {
+      type: String,
+    },
+    review: {
+      type: Number,
+    },
+  }
+);
+const Products = mongoose.model('Product', productSchema);
+
+  const Testimonials = mongoose.model('Testimonial', testimonialSchema);
+  
+  module.exports = {Products,Testimonials};

@@ -77,8 +77,29 @@ const testimonialSchema = new mongoose.Schema(
     },
   }
 );
-const Products = mongoose.model('Product', productSchema);
 
-  const Testimonials = mongoose.model('Testimonial', testimonialSchema);
+const articleSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  shortDescription: { type: String, required: true },
+  fullDescription: { type: String, required: true },
+  eventDate: { type: Date, required: true },
+  viewers: { type: Number, required: true },
+  userImage: { type: String, required: true }, 
+  productImage: { type: String, required: true }, 
+  selectedPlaces: { type: Number, required: true },
+  articleDetails: [
+    {
+      title: { type: String, required: true },
+      description: { type: String, required: true },
+      location: { type: String, required: true },
+      websiteUrl: { type: String, required: true },
+      image: { type: String, required: true }, 
+    }
+  ],
+});
+
+const Articles = mongoose.model('Article', articleSchema);
+const Products = mongoose.model('Product', productSchema);
+const Testimonials = mongoose.model('Testimonial', testimonialSchema);
   
-  module.exports = {Products,Testimonials};
+  module.exports = {Products,Testimonials,Articles};

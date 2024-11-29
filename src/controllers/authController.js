@@ -1,6 +1,6 @@
 const { login, register } = require('../services/userService');
 const jwt = require('jsonwebtoken');
-const {Products, Testimonials}  = require('../models/userSchema');
+const {Products, Testimonials, Articles}  = require('../models/userSchema');
 require('dotenv').config();
 
 const ADMIN_USERNAME = 'admin@maplocally.com';
@@ -9,9 +9,7 @@ const ADMIN_PASSWORD = 'admin123@';
 const authLogin = async (req, res) => {
   const { email, password } = req.body;
 
-  // Check if the username and password are correct
   if (email === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      // Generate JWT token
       const Token = jwt.sign({ email }, 'JWT_SECRET');
       return res.status(200).json({ Token, message: 'Login successful' });
   }
@@ -94,7 +92,7 @@ const DeleteProduct = async (req, res) => {
 
   const GetProductFilter = async (req, res) => {
     try {
-      const { category, price, people, date } = req.query;
+      const { category, minPrice, maxPrice, people, date } = req.query;
   
       // Initialize filter criteria
       let filterCriteria = {};
@@ -105,9 +103,12 @@ const DeleteProduct = async (req, res) => {
       }
   
       // Filter by price if provided (exact match)
-      if (price) {
-        filterCriteria.price = parseFloat(price);  // Ensures price is a number
+      if (minPrice || maxPrice) {
+        filterCriteria.price = {};
+        if (minPrice) filterCriteria.price.$gte = parseFloat(minPrice);  // minPrice (greater than or equal)
+        if (maxPrice) filterCriteria.price.$lte = parseFloat(maxPrice);  // maxPrice (less than or equal)
       }
+  
   
       // Filter by people if provided (exact match)
       if (people) {
@@ -139,8 +140,121 @@ const DeleteProduct = async (req, res) => {
       res.status(500).json({ success: false, message: error.message });
     }
   };
+  const createArticle= async (req, res) => {
+    try {
+      const {
+        title,
+        shortDescription,
+        fullDescription,
+        eventDate,
+        viewers,
+        userImage,
+        productImage,
+        selectedPlaces,
+        articleDetails,
+      } = req.body;
+  
+      // Validate if the necessary data is present
+      if (!title || !shortDescription || !fullDescription || !eventDate || !viewers || !userImage || !productImage || !selectedPlaces || !articleDetails) {
+        return res.status(400).json({ success: false, message: "Missing required fields" });
+      }
+  
+      // Create a new article
+      const newArticle = new Articles({
+        title,
+        shortDescription,
+        fullDescription,
+        eventDate,
+        viewers,
+        userImage,
+        productImage,
+        selectedPlaces,
+        articleDetails,
+      });
+  
+      // Save the article to the database
+      await newArticle.save();
+  
+      return res.status(201).json({ success: true, message: 'Article created successfully', article: newArticle });
+    } catch (error) {
+      console.error("Error creating article:", error);
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }; 
 
+const GetAllArticle= async (req, res) => {
+  try {
+    const articles = await Articles.find();
+    res.status(200).json({ success: true, data: articles });
+  } catch (error) {
+    console.error('Error fetching articles:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+const GetSingleArticle= async (req, res) => {
+  const { id } = req.params;
+  try {
+    const article = await Articles.findById(id);
+    if (!article) {
+      return res.status(404).json({ success: false, message: 'Article not found' });
+    }
+    res.status(200).json({ success: true, data: article });
+  } catch (error) {
+    console.error('Error fetching article:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
+const UpdateArticle= async (req, res) => {
+  const { id } = req.params;
+  try {
+    const articleId = id;
+    const { title, shortDescription, fullDescription, eventDate, viewers, userImage, productImage, articleDetails } = req.body;
 
+    // Find and update the article
+    const updatedArticle = await Articles.findByIdAndUpdate(
+      articleId,
+      {
+        title,
+        shortDescription,
+        fullDescription,
+        eventDate,
+        viewers,
+        userImage,
+        productImage,
+        articleDetails
+      },
+      { new: true } // Return the updated article
+    );
 
-module.exports = { authLogin, createProduct, GetAllProduct, GetSingleProduct, UpdatedProduct, DeleteProduct, GetTestimonial, GetProductFilter};
+    if (!updatedArticle) {
+      return res.status(404).json({ success: false, message: 'Article not found' });
+    }
+
+    res.status(200).json({ success: true, data: updatedArticle });
+  } catch (error) {
+    console.error('Error updating article:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+const DeleteArticle= async (req, res) => {
+  const { id } = req.params;
+  try {
+    const articleId = id;
+
+    // Find and delete the article
+    const deletedArticle = await Articles.findByIdAndDelete(articleId);
+
+    if (!deletedArticle) {
+      return res.status(404).json({ success: false, message: 'Article not found' });
+    }
+
+    res.status(200).json({ success: true, message: 'Article deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting article:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { authLogin, createProduct, GetAllProduct, GetSingleProduct, UpdatedProduct, DeleteProduct, GetTestimonial, GetProductFilter,createArticle, GetAllArticle, GetSingleArticle, UpdateArticle, DeleteArticle};

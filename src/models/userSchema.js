@@ -1,61 +1,137 @@
 const mongoose = require('mongoose');
 
-
+//
 const productSchema = new mongoose.Schema(
-    {
-      title: {
-        type: String,
-        required: true,
-      },
-      subTitle: {
-        type: String,
-      },
-      price: {
-        type: Number,
-        required: true,
-        min: 0,
-      },
-      tags: {
-        type: [String], 
-      },
-      shortDescription: {
-        type: String,
-      },
-      fullDescription: {
-        type: String,
-      },
-      productImages: {
-        type: [String], 
-      },
-      highlights: {
-        type: [String], 
-        default: [],
-      },
-      includes: {
-        type: [String], 
-        default: [],
-      },
-      meetingPoint: {
-        type: String,
-      },
-      latitude: {
-        type: String,
-      },
-      longitude: {
-        type: String,
-      },
-      category: {
-        type: String,
-      },
-      people: {
-        type: Number,
-      },
-      date: {
-        type: String,
-      },
-    }
-  );
-  
+  {
+    title: {
+      type: String,
+      required: true,
+    },
+    subTitle: {
+      type: String,
+    },
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    tags: {
+      type: [String],
+    },
+    briefDescription: {
+      type: String,
+    },
+    fullDescription: {
+      type: String,
+    },
+    productImages: {
+      type: [String],
+    },
+    highlights: {
+      type: [String],
+      default: [],
+    },
+    includes: {
+      type: [String],
+      default: [],
+    },
+    meetingPoint: {
+      type: String,
+    },
+    latitude: {
+      type: String,
+    },
+    longitude: {
+      type: String,
+    },
+    category: {
+      type: String,
+    },
+    groupSize: {
+      type: String, 
+    },
+    tourDate: {
+      type: String, // Storing date as a string in YYYY-MM-DD format
+    },
+    tourDuration: {
+      type: String, // Duration stored as a string for flexible descriptions
+    },
+    tourLanguage: {
+      type: String, // Language of the tour
+    },
+    pickupOption: {
+      type: String, // Details about pickup options
+    },
+  },
+  { timestamps: true } // Adds createdAt and updatedAt fields
+);
+
+const featuredSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+    },
+    subTitle: {
+      type: String,
+    },
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    tags: {
+      type: [String],
+    },
+    briefDescription: {
+      type: String,
+    },
+    fullDescription: {
+      type: String,
+    },
+    productImages: {
+      type: [String],
+    },
+    highlights: {
+      type: [String],
+      default: [],
+    },
+    includes: {
+      type: [String],
+      default: [],
+    },
+    meetingPoint: {
+      type: String,
+    },
+    latitude: {
+      type: String,
+    },
+    longitude: {
+      type: String,
+    },
+    category: {
+      type: String,
+    },
+    groupSize: {
+      type: String, 
+    },
+    tourDate: {
+      type: String, // Storing date as a string in YYYY-MM-DD format
+    },
+    tourDuration: {
+      type: String, // Duration stored as a string for flexible descriptions
+    },
+    tourLanguage: {
+      type: String, // Language of the tour
+    },
+    pickupOption: {
+      type: String, // Details about pickup options
+    },
+  },
+  { timestamps: true } // Adds createdAt and updatedAt fields
+);
+
+
 const testimonialSchema = new mongoose.Schema(
   {
     name: {
@@ -100,6 +176,7 @@ const articleSchema = new mongoose.Schema({
 
 const Articles = mongoose.model('Article', articleSchema);
 const Products = mongoose.model('Product', productSchema);
+const Featured = mongoose.model('Featured', featuredSchema);
 const Testimonials = mongoose.model('Testimonial', testimonialSchema);
   
-  module.exports = {Products,Testimonials,Articles};
+  module.exports = {Products,Testimonials,Articles, Featured};

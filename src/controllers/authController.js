@@ -1,6 +1,6 @@
 const { login, register } = require('../services/userService');
 const jwt = require('jsonwebtoken');
-const {Products, Testimonials, Articles}  = require('../models/userSchema');
+const {Products, Testimonials, Articles, Featured}  = require('../models/userSchema');
 require('dotenv').config();
 
 const ADMIN_USERNAME = 'admin@maplocally.com';
@@ -19,7 +19,7 @@ const authLogin = async (req, res) => {
 
 const createProduct = async (req, res) => {
     try {
-      const { title, price, shortDescription, category,productImages,people,date } = req.body;
+      const { title, price, shortDescription, category,tags, productImages,people,date } = req.body;
         console.log('Product model:', title);
         const existingProduct = await Products.findOne({ title: title });
       if (existingProduct) {
@@ -27,7 +27,7 @@ const createProduct = async (req, res) => {
       }
   
       // Create a new product
-      const product = new Products({ title, price, shortDescription, category,productImages,people,date});
+      const product = new Products({ title, price, shortDescription, category,tags, productImages,people,date});
       product.save();
       res.status(201).json({ success: true, data: product });
     } catch (error) {
@@ -90,6 +90,105 @@ const DeleteProduct = async (req, res) => {
     }
   };
 
+
+  const createFeaturedProduct = async (req, res) => {
+    try {
+      const { title, price, shortDescription, category,productImages,people,date } = req.body;
+        console.log('Product model:', title);
+        const existingProduct = await Featured.findOne({ title: title });
+      if (existingProduct) {
+        return res.status(400).json({ success: false, message: 'Product already exists' });
+      }
+  
+      // Create a new product
+      const product = new Featured({ title, price, shortDescription, category,productImages,people,date});
+      product.save();
+      res.status(201).json({ success: true, data: product });
+    } catch (error) {
+      console.error('Error in createProduct:', error);
+      res.status(500).json({ success: false, message: error.message });
+    }
+  };
+
+const GetAllFeaturedProduct = async (req, res) => {
+    try {
+      const products = await Featured.find(); // Fetch all products
+      res.status(200).json({ success: true, data: products });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  };
+
+const GetSingleFeaturedProduct =  async (req, res) => {
+  const { id } = req.params;  
+  console.log(id);
+  try {
+      const product = await Featured.findById(id); 
+      if (!product) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+      }
+      res.status(200).json({ success: true, data: product });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  };
+
+const UpdatedFeaturedProduct =  async (req, res) => {
+    try {
+      const { id } = req.params;
+  
+      const updatedProduct = await Featured.findByIdAndUpdate( id, req.body);
+      console.log( id );
+      if (!updatedProduct) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+      }
+  
+      res.status(200).json({ success: true, message: 'Product updated successfully', data: updatedProduct });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  };
+
+const DeleteFeaturedProduct = async (req, res) => {
+    try {
+      const { id } = req.params;
+  
+      const deletedProduct = await Featured.findByIdAndDelete(id);
+      if (!deletedProduct) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+      }
+  
+      res.status(200).json({ success: true, message: 'Product deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  };
+  const ProductTagFilter = async (req, res) => {
+    try {
+      const { id } = req.params; 
+  
+      const product = await Products.findById(id);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+  
+      const relatedProducts = await Products.find(
+        {
+          _id: { $ne: id }, 
+          tags: { $in: product.tags },
+        }      );
+  
+      if (relatedProducts.length === 0) {
+        return res.status(404).json({ message: "No related products found" });
+      }
+  
+      res.json({ relatedProducts });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+  
   const GetProductFilter = async (req, res) => {
     try {
       const { category, minPrice, maxPrice, people, date } = req.query;
@@ -257,4 +356,4 @@ const DeleteArticle= async (req, res) => {
   }
 };
 
-module.exports = { authLogin, createProduct, GetAllProduct, GetSingleProduct, UpdatedProduct, DeleteProduct, GetTestimonial, GetProductFilter,createArticle, GetAllArticle, GetSingleArticle, UpdateArticle, DeleteArticle};
+module.exports = { authLogin, createProduct, GetAllProduct, GetSingleProduct, UpdatedProduct, DeleteProduct, ProductTagFilter, createFeaturedProduct, GetAllFeaturedProduct, GetSingleFeaturedProduct, UpdatedFeaturedProduct, DeleteFeaturedProduct, GetTestimonial, GetProductFilter,createArticle, GetAllArticle, GetSingleArticle, UpdateArticle, DeleteArticle};

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authLogin, createProduct, GetAllProduct, GetSingleProduct, UpdatedProduct, DeleteProduct , ProductTagFilter, createFeaturedProduct, GetAllFeaturedProduct, GetSingleFeaturedProduct, UpdatedFeaturedProduct, DeleteFeaturedProduct, GetTestimonial, GetProductFilter, createArticle, GetAllArticle, GetSingleArticle, UpdateArticle, DeleteArticle} = require('../controllers/authController');
+const { authLogin, createProduct, GetAllProduct, GetSingleProduct, UpdatedProduct, DeleteProduct , ProductTagFilter, ContactUserResponse, createFeaturedProduct, GetAllFeaturedProduct, GetSingleFeaturedProduct, UpdatedFeaturedProduct, DeleteFeaturedProduct, GetTestimonial, GetProductFilter, createArticle, GetAllArticle, GetSingleArticle, UpdateArticle, DeleteArticle} = require('../controllers/authController');
 
 router.post('/login', authLogin);
 router.post('/create-product', createProduct);          // Create product
@@ -9,6 +9,7 @@ router.get('/get-testimonial', GetTestimonial);         // Get all testimonials
 router.get('/get-product/:id', GetSingleProduct);  // Correct route definition for getting a product by ID
 router.put('/update-product/:id', UpdatedProduct);       // Update product by ID
 router.delete('/delete-product/:id', DeleteProduct);    // Delete product by ID
+router.post('/contact', ContactUserResponse);
 router.post('/create-featured-product', createFeaturedProduct);          // Create Featured product
 router.get('/get-featured-products', GetAllFeaturedProduct);            // Get all featured products
 router.get('/get-featured-product/:id', GetSingleFeaturedProduct);  // Correct route definition for getting a product by ID

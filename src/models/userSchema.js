@@ -154,29 +154,54 @@ const testimonialSchema = new mongoose.Schema(
   }
 );
 
+// Create a Mongoose schema and model for the contact form
+const contactSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+  },
+  company: {
+    type: String,
+  },
+  subject: {
+    type: String,
+    required: true,
+  },
+  message: {
+    type: String,
+    required: true,
+  },
+});
+
 const articleSchema = new mongoose.Schema({
   title: { type: String, required: true },
   shortDescription: { type: String, required: true },
   fullDescription: { type: String, required: true },
-  eventDate: { type: Date, required: true },
-  viewers: { type: Number, required: true },
-  userImage: { type: String, required: true }, 
-  productImage: { type: String, required: true }, 
-  selectedPlaces: { type: Number, required: true },
-  articleDetails: [
+  userName: { type: String, required: true },
+  date: { type: Date, required: true },
+  views: { type: String, required: true },
+  userImage: { type: String },
+  articleImage: { type: String },
+  places: [
     {
-      title: { type: String, required: true },
-      description: { type: String, required: true },
-      location: { type: String, required: true },
-      websiteUrl: { type: String, required: true },
-      image: { type: String, required: true }, 
-    }
+      title: { type: String },
+      shortDescription: { type: String },
+      image: { type: String },
+      number: { type: String },
+      website: { type: String },
+      address: { type: String },
+    },
   ],
 });
 
 const Articles = mongoose.model('Article', articleSchema);
 const Products = mongoose.model('Product', productSchema);
 const Featured = mongoose.model('Featured', featuredSchema);
+const Contact = mongoose.model('Contact', contactSchema);
 const Testimonials = mongoose.model('Testimonial', testimonialSchema);
   
-  module.exports = {Products,Testimonials,Articles, Featured};
+  module.exports = {Products,Testimonials,Articles, Featured,Contact};

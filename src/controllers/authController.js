@@ -1,6 +1,6 @@
 const { login, register } = require('../services/userService');
 const jwt = require('jsonwebtoken');
-const {Products, Testimonials, Articles, Featured}  = require('../models/userSchema');
+const {Products, Testimonials, Articles, Featured, Contact}  = require('../models/userSchema');
 require('dotenv').config();
 
 const ADMIN_USERNAME = 'admin@maplocally.com';
@@ -19,7 +19,7 @@ const authLogin = async (req, res) => {
 
 const createProduct = async (req, res) => {
     try {
-      const { title, price, shortDescription, category,tags, productImages,people,date } = req.body;
+      const { title, subTitle, price, briefDescription, fullDescription, category, tags, productImages, highlights, includes, tourDuration, tourLanguage, pickupOption, groupSize, meetingPoint, latitude, longitude, tourDate, people, date } = req.body;
         console.log('Product model:', title);
         const existingProduct = await Products.findOne({ title: title });
       if (existingProduct) {
@@ -27,11 +27,11 @@ const createProduct = async (req, res) => {
       }
   
       // Create a new product
-      const product = new Products({ title, price, shortDescription, category,tags, productImages,people,date});
+      const product = new Products({ title, subTitle, price, briefDescription, fullDescription, category,tags, productImages, highlights, includes, tourDuration, tourLanguage, pickupOption, groupSize, meetingPoint, latitude, longitude, tourDate, people,date});
       product.save();
       res.status(201).json({ success: true, data: product });
     } catch (error) {
-      console.error('Error in createProduct:', error);
+      console.error('Error in create Product:', error);
       res.status(500).json({ success: false, message: error.message });
     }
   };
@@ -165,18 +165,24 @@ const DeleteFeaturedProduct = async (req, res) => {
   };
   const ProductTagFilter = async (req, res) => {
     try {
-      const { id } = req.params; 
+      const { id } = req.params;
   
+      // Find the product by ID
       const product = await Products.findById(id);
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
   
-      const relatedProducts = await Products.find(
-        {
-          _id: { $ne: id }, 
-          tags: { $in: product.tags },
-        }      );
+      // Validate `tags` field
+      if (!product.tags || !Array.isArray(product.tags) || product.tags.length === 0) {
+        return res.status(404).json({ message: "No tags found for this product" });
+      }
+  
+      // Query for related products
+      const relatedProducts = await Products.find({
+        _id: { $ne: id }, // Exclude the current product
+        tags: { $in: product.tags }, // Match products with overlapping tags
+      });
   
       if (relatedProducts.length === 0) {
         return res.status(404).json({ message: "No related products found" });
@@ -184,8 +190,35 @@ const DeleteFeaturedProduct = async (req, res) => {
   
       res.json({ relatedProducts });
     } catch (error) {
-      console.error(error);
+      console.error("Error in ProductTagFilter:", error.message);
       res.status(500).json({ message: "Internal Server Error" });
+    }
+  };
+  const RelatedProductsFilter = async (req, res) => {
+    const { productId, category } = req.query;
+  
+    try {
+      // Validate required fields
+      if (!productId || !category) {
+        return res.status(400).json({ success: false, message: "Product ID and category are required" });
+      }
+  
+      // Find related products by category, excluding the current product
+      const relatedProducts = await Products.find({
+        category: category,
+        _id: { $ne: productId }, // Exclude the selected product by ID
+      }).exec();
+  
+      res.status(200).json({
+        success: true,
+        data: relatedProducts,
+      });
+    } catch (error) {
+      console.error("Error fetching related products:", error);
+      res.status(500).json({
+        success: false,
+        message: "Internal Server Error",
+      });
     }
   };
   
@@ -195,7 +228,7 @@ const DeleteFeaturedProduct = async (req, res) => {
   
       // Initialize filter criteria
       let filterCriteria = {};
-  
+      
       // Filter by category if provided
       if (category) {
         filterCriteria.category = category;
@@ -229,7 +262,26 @@ const DeleteFeaturedProduct = async (req, res) => {
       res.status(500).json({ success: false, message: error.message });
     }
   };
+  const ContactUserResponse =async (req, res) => {
+    try {
+      const { name, email, company, subject, message } = req.body;
   
+      const newContact = new Contact({
+        name,
+        email,
+        company,
+        subject,
+        message,
+      });
+  
+      await newContact.save();
+  
+      res.status(201).json({ message: 'Contact form submitted successfully!' });
+    } catch (error) {
+      console.error('Error saving contact form:', error);
+      res.status(500).json({ message: 'Server error. Please try again later.' });
+    }
+  };
 
   const GetTestimonial = async (req, res) => {
     try {
@@ -241,45 +293,13 @@ const DeleteFeaturedProduct = async (req, res) => {
   };
   const createArticle= async (req, res) => {
     try {
-      const {
-        title,
-        shortDescription,
-        fullDescription,
-        eventDate,
-        viewers,
-        userImage,
-        productImage,
-        selectedPlaces,
-        articleDetails,
-      } = req.body;
-  
-      // Validate if the necessary data is present
-      if (!title || !shortDescription || !fullDescription || !eventDate || !viewers || !userImage || !productImage || !selectedPlaces || !articleDetails) {
-        return res.status(400).json({ success: false, message: "Missing required fields" });
-      }
-  
-      // Create a new article
-      const newArticle = new Articles({
-        title,
-        shortDescription,
-        fullDescription,
-        eventDate,
-        viewers,
-        userImage,
-        productImage,
-        selectedPlaces,
-        articleDetails,
-      });
-  
-      // Save the article to the database
-      await newArticle.save();
-  
-      return res.status(201).json({ success: true, message: 'Article created successfully', article: newArticle });
-    } catch (error) {
-      console.error("Error creating article:", error);
-      return res.status(500).json({ success: false, message: error.message });
+      const article = new Articles(req.body);
+      await article.save();
+      res.status(201).json({ message: "Article created successfully!", data: article });
+    } catch (err) {
+      res.status(500).json({ message: "Error creating article.", error: err });
     }
-  }; 
+  };
 
 const GetAllArticle= async (req, res) => {
   try {
@@ -305,35 +325,16 @@ const GetSingleArticle= async (req, res) => {
 };
 
 const UpdateArticle= async (req, res) => {
-  const { id } = req.params;
   try {
-    const articleId = id;
-    const { title, shortDescription, fullDescription, eventDate, viewers, userImage, productImage, articleDetails } = req.body;
-
-    // Find and update the article
     const updatedArticle = await Articles.findByIdAndUpdate(
-      articleId,
-      {
-        title,
-        shortDescription,
-        fullDescription,
-        eventDate,
-        viewers,
-        userImage,
-        productImage,
-        articleDetails
-      },
-      { new: true } // Return the updated article
-    );
-
+      req.params.id,
+      req.body    );
     if (!updatedArticle) {
-      return res.status(404).json({ success: false, message: 'Article not found' });
+      return res.status(404).json({ message: "Article not found." });
     }
-
-    res.status(200).json({ success: true, data: updatedArticle });
-  } catch (error) {
-    console.error('Error updating article:', error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(200).json({ message: "Article updated successfully!", data: updatedArticle });
+  } catch (err) {
+    res.status(500).json({ message: "Error updating article.", error: err });
   }
 };
 
@@ -356,4 +357,4 @@ const DeleteArticle= async (req, res) => {
   }
 };
 
-module.exports = { authLogin, createProduct, GetAllProduct, GetSingleProduct, UpdatedProduct, DeleteProduct, ProductTagFilter, createFeaturedProduct, GetAllFeaturedProduct, GetSingleFeaturedProduct, UpdatedFeaturedProduct, DeleteFeaturedProduct, GetTestimonial, GetProductFilter,createArticle, GetAllArticle, GetSingleArticle, UpdateArticle, DeleteArticle};
+module.exports = { authLogin, createProduct, GetAllProduct, GetSingleProduct, UpdatedProduct, DeleteProduct, ProductTagFilter, RelatedProductsFilter, createFeaturedProduct, GetAllFeaturedProduct, GetSingleFeaturedProduct, UpdatedFeaturedProduct, DeleteFeaturedProduct, GetTestimonial, GetProductFilter,createArticle, GetAllArticle, GetSingleArticle, UpdateArticle, DeleteArticle, ContactUserResponse};
